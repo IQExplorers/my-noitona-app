@@ -177,8 +177,8 @@ async function run() {
 
 run();
 
-// const intervalId = setInterval(run, 60000);
+const intervalId = setInterval(run, 60000);
 
-// setTimeout(() => {
-//   clearInterval(intervalId);
-// }, 360000);
+setTimeout(() => {
+  clearInterval(intervalId);
+}, 500000);

@@ -1,7 +1,6 @@
 const cheerio = require("cheerio");
 const axios = require("axios");
-const url = require("url");
-const { table } = require("console");
+
 
 const CSGOSelector =
   "#mw-content-text > div > div.panel-box.wiki-bordercolor-light.toggle-area.toggle-area-1.matches-list > div:nth-child(2) > div:nth-child(1)";
@@ -142,7 +141,7 @@ async function parseDota() {
 }
 
 async function getMatches() {
-  const valorantMatches =  await parseMatches(
+  const valorantMatches = await parseMatches(
     valorantSourse,
     valorantSelector,
     "valorant"
@@ -155,7 +154,7 @@ async function getMatches() {
 
 // parseMatches(valorantSourse, valorantSelector, "valorant");
 // parseMatches(CSGOSourse, CSGOSelector, "csgo");
-//parseMatches(dotaSource, dotaSelector, "dota");
+// parseMatches(dotaSource, dotaSelector, "dota");
 // parseDota();
 
 // const intervalId = setInterval(parseCS, 10000);

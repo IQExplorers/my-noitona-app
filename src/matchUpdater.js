@@ -172,7 +172,6 @@ async function run() {
   updateDatabase(currentMatches, databasePages);
   deletePages(deprecatedPages);
   addMatches(filteredCurrentMatches);
-  //change
 }
 
 run();

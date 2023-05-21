@@ -192,7 +192,7 @@ async function runRquest() {
   }
 }
 
-const intervalReqId = setInterval(runRquest, 20000);
+const intervalReqId = setInterval(runRquest, 300000);
 
 function startServer() {
   app.get("/get", (req, resp) => {

@@ -213,20 +213,20 @@ async function getMatches() {
     valorantSelector,
     "valorant"
   );
-  const HLTVMatches = await parseHLTV("B8");
-  const CSGOMathes = await parseMatches(CSGOSourse, CSGOSelector, "csgo");
+  // const HLTVMatches = await parseHLTV("B8");
+  const CSGOMatches = await parseMatches(CSGOSourse, CSGOSelector, "csgo");
 
-  for (let i = 0; i < CSGOMathes.length; i++) {
-    for (let j = 0; j < HLTVMatches.length; j++) {
-      if (CSGOMathes[i].Date.getTime() === HLTVMatches[j].Date.getTime()) {
-        CSGOMathes[i] = HLTVMatches[j];
-      }
-    }
-  }
+  // for (let i = 0; i < CSGOMathes.length; i++) {
+  //   for (let j = 0; j < HLTVMatches.length; j++) {
+  //     if (CSGOMathes[i].Date.getTime() === HLTVMatches[j].Date.getTime()) {
+  //       CSGOMathes[i] = HLTVMatches[j];
+  //     }
+  //   }
+  // }
 
   const dotaMatches = await parseDota();
 
-  return [...CSGOMathes, ...valorantMatches, ...dotaMatches];
+  return [...CSGOMatches, ...valorantMatches, ...dotaMatches];
 }
 
 //parseHLTV("B8");

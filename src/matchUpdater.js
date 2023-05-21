@@ -183,21 +183,23 @@ run();
 const intervalId = setInterval(run, 60000);
 
 async function runRquest() {
-  const url = "http://localhost:3002/get"; 
-  const { data } = await axios.get(url);
-  console.log(data);
+  try {
+    const url = "http://localhost:3022/get";
+    const { data } = await axios.get(url);
+    console.log(data);
+  } catch (ex) {
+    console.log("ex", ex);
+  }
 }
 
-const intervalReqId = setInterval(runRquest, 10000);
-
-
+const intervalReqId = setInterval(runRquest, 20000);
 
 function startServer() {
   app.get("/get", (req, resp) => {
     resp.send("server done!");
   });
 
-  const port = 3001;
+  const port = 3011;
   app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });

@@ -143,7 +143,7 @@ async function parseDota() {
 }
 
 async function parseHLTV(teamName) {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ downloadsPath: "./browser" });
   const context = await browser.newContext({
     userAgent: "Safari/537.36",
   });
@@ -203,20 +203,8 @@ async function parseHLTV(teamName) {
       });
   });
 
-  console.log("mat", matches);
+  console.log("HLTVmatches", matches);
   return matches;
-
-  // matches.push({
-  //   Name: enemy,
-  //   Game: "dota",
-  //   Date: dateObj,
-  //   Format: format,
-  //   Status: status,
-  //   Tournament: {
-  //     name: tournamentName,
-  //     link: "https://liquipedia.net" + tournamentLink,
-  //   },
-  // });
 }
 
 async function getMatches() {

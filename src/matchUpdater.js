@@ -84,45 +84,60 @@ async function addMatches(matches) {
 }
 
 function filterAddMatches(currentMatches, databasePages) {
-  return currentMatches.filter((match) => {
-    let fit = true;
+  try {
+    return currentMatches.filter((match) => {
+      let fit = true;
 
-    databasePages.forEach((page) => {
-      if (match.Name === page.Name.title[0].text.content) {
-        fit = false;
-      }
+      databasePages.forEach((page) => {
+        if (match.Name === page.Name.title[0].text.content) {
+          fit = false;
+        }
+      });
+      return fit;
     });
-    return fit;
-  });
+  } catch (ex) {
+    console.log("ex", ex);
+  }
 }
 
 function filterDeprecatedMatches(currentMatches, databasePages) {
-  return databasePages.filter((page) => {
-    let deprecated = true;
+  try {
+    return databasePages.filter((page) => {
+      let deprecated = true;
 
-    currentMatches.forEach((match) => {
-      if (match.Name === page.Name.title[0].text.content) {
-        deprecated = false;
-      }
+      currentMatches.forEach((match) => {
+        if (match.Name === page.Name.title[0].text.content) {
+          deprecated = false;
+        }
+      });
+
+      return deprecated;
     });
-
-    return deprecated;
-  });
+  } catch (ex) {
+    console.log("ex", ex);
+  }
 }
 
-async function deletePages(deprecatedPages) {
-  await Promise.all(
-    deprecatedPages.map(async (page) => {
-      await notion.pages.update({
-        page_id: page.pageId,
-        properties: {
-          Status: {
-            status: { name: "Done" },
-          },
-        },
-      });
-    })
-  );
+async function deletePages(databasePages) {
+  try {
+    await Promise.all(
+      databasePages.map(async (page) => {
+        if (Date.parse(page.Date.date.start) + 10_800_000 < Date.now()) {
+          
+          await notion.pages.update({
+            page_id: page.pageId,
+            properties: {
+              Status: {
+                status: { name: "Done" },
+              },
+            },
+          });
+        }
+      })
+    );
+  } catch (exc) {
+    console.log("exc", exc);
+  }
 }
 
 async function updateDatabase(filteredCurrentMatches, databasePages) {
@@ -133,14 +148,16 @@ async function updateDatabase(filteredCurrentMatches, databasePages) {
         const pageToUpdate = {};
         if (
           match.Name === page.Name.title[0].text.content &&
-          match.Status !== page.Status.status.name
+          match.Status !== page.Status.status.name &&
+          page.Status.status.name !== "Done"
         ) {
           pageToUpdate.Status = { status: { name: match.Status } };
         }
 
         if (
           match.Name === page.Name.title[0].text.content &&
-          match.Date.getTime() !== Date.parse(page.Date.date.start)
+          match.Date.getTime() !== Date.parse(page.Date.date.start) &&
+          page.Status.status.name !== "Done"
         ) {
           pageToUpdate.Date = { date: { start: match.Date } };
         }
@@ -163,7 +180,7 @@ async function updateDatabase(filteredCurrentMatches, databasePages) {
 
 async function run() {
   const currentMatches = await parser.getMatches();
-  const databasePages = await getDatabaseMatches();
+  let databasePages = await getDatabaseMatches();
   const filteredCurrentMatches = filterAddMatches(
     currentMatches,
     databasePages
@@ -174,7 +191,8 @@ async function run() {
   );
 
   updateDatabase(currentMatches, databasePages);
-  deletePages(deprecatedPages);
+  databasePages = await getDatabaseMatches();
+  deletePages(databasePages);
   addMatches(filteredCurrentMatches);
 }
 

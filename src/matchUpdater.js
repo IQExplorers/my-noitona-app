@@ -184,7 +184,7 @@ const intervalId = setInterval(run, 60000);
 
 async function runRquest() {
   try {
-    const url = "http://localhost:3022/get";
+    const url = "https://notiona-activator.onrender.com/get";
     const { data } = await axios.get(url);
     console.log(data);
   } catch (ex) {

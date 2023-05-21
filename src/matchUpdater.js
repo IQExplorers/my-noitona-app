@@ -1,6 +1,10 @@
 const { Client } = require("@notionhq/client");
 const parser = require("./parser");
 require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+
+const app = express();
 
 const notion = new Client({
   auth: process.env.INTEGRATION_TOKEN,
@@ -178,6 +182,28 @@ run();
 
 const intervalId = setInterval(run, 60000);
 
+async function runRquest() {
+  const url = "http://localhost:3002/get"; 
+  const { data } = await axios.get(url);
+  console.log(data);
+}
+
+const intervalReqId = setInterval(runRquest, 10000);
+
+
+
+function startServer() {
+  app.get("/get", (req, resp) => {
+    resp.send("server done!");
+  });
+
+  const port = 3001;
+  app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+  });
+}
+
+startServer();
 // setTimeout(() => {
 //   clearInterval(intervalId);
 // }, 500000);

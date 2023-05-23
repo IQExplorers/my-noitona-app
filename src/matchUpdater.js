@@ -241,7 +241,7 @@ async function run() {
 
 run();
 
-const intervalId = setInterval(run, 60000);
+const intervalId = setInterval(run, 300000);
 
 async function runRquest() {
   try {

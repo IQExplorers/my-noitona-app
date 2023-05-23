@@ -103,6 +103,7 @@ function filterAddMatches(currentMatches, databasePages) {
   }
 }
 
+//not used
 function filterDeprecatedMatches(currentMatches, databasePages) {
   try {
     return databasePages.filter((page) => {
@@ -159,16 +160,14 @@ async function updateDatabase(currentMatches, databasePages) {
 
         if (
           match.Name === page.Name.title[0].text.content &&
-          match.Status !== page.Status.status.name &&
-          page.Status.status.name !== "Done"
+          match.Status !== page.Status.status.name
         ) {
           pageToUpdate.Status = { status: { name: match.Status } };
         }
 
         if (
           match.Name === page.Name.title[0].text.content &&
-          match.Date.getTime() !== Date.parse(page.Date.date.start) &&
-          page.Status.status.name !== "Done"
+          match.Date.getTime() !== Date.parse(page.Date.date.start)
         ) {
           pageToUpdate.Date = { date: { start: match.Date } };
         }
@@ -227,20 +226,16 @@ async function run() {
   const currentMatches = await parser.getMatches();
   let databasePages = await getDatabaseMatches();
 
-  const deprecatedPages = filterDeprecatedMatches(
-    currentMatches,
-    databasePages
-  );
-
   await updateDatabase(currentMatches, databasePages);
   databasePages = await getDatabaseMatches();
+
+  await fulfillTBD(currentMatches, databasePages);
+  await deletePages(databasePages);
 
   const filteredCurrentMatches = filterAddMatches(
     currentMatches,
     databasePages
   );
-  await fulfillTBD(currentMatches, databasePages);
-  await deletePages(databasePages);
   await addMatches(filteredCurrentMatches);
 }
 

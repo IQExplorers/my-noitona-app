@@ -89,7 +89,10 @@ function filterAddMatches(currentMatches, databasePages) {
       let fit = true;
 
       databasePages.forEach((page) => {
-        if (match.Name === page.Name.title[0].text.content) {
+        if (
+          match.Date.getTime() === Date.parse(page.Date.date.start) &&
+          match.Tournament.name === page.Tournament.rich_text[0].text.content
+        ) {
           fit = false;
         }
       });
@@ -123,7 +126,6 @@ async function deletePages(databasePages) {
     await Promise.all(
       databasePages.map(async (page) => {
         if (Date.parse(page.Date.date.start) + 10_800_000 < Date.now()) {
-          
           await notion.pages.update({
             page_id: page.pageId,
             properties: {
@@ -140,12 +142,21 @@ async function deletePages(databasePages) {
   }
 }
 
-async function updateDatabase(filteredCurrentMatches, databasePages) {
+async function updateDatabase(currentMatches, databasePages) {
   try {
     const updates = [];
-    for (const match of filteredCurrentMatches) {
+    for (const match of currentMatches) {
       for (const page of databasePages) {
         const pageToUpdate = {};
+
+        if (
+          page.Name.title[0].text.content === "TBD" ||
+          page.Status.status.name === "Done"
+        ) {
+          console.log("continue");
+          continue;
+        }
+
         if (
           match.Name === page.Name.title[0].text.content &&
           match.Status !== page.Status.status.name &&
@@ -178,22 +189,59 @@ async function updateDatabase(filteredCurrentMatches, databasePages) {
   }
 }
 
+async function fulfillTBD(currentMatches, databasePages) {
+  try {
+    const updates = [];
+    for (const match of currentMatches) {
+      for (const page of databasePages) {
+        const pageToUpdate = {};
+
+        if (match.Name === "TBD") continue;
+
+        if (
+          page.Name.title[0].text.content === "TBD" &&
+          Date.parse(page.Date.date.start) === match.Date.getTime() &&
+          page.Tournament.rich_text[0].text.content === match.Tournament.name
+        ) {
+          console.log("YESS");
+          pageToUpdate.Name = { title: [{ text: { content: match.Name } }] };
+        }
+
+        if (Object.keys(pageToUpdate).length > 0) {
+          updates.push(
+            await notion.pages.update({
+              page_id: page.pageId,
+              properties: pageToUpdate,
+            })
+          );
+        }
+      }
+    }
+    await Promise.all(updates);
+  } catch (ex) {
+    console.log("ex", ex);
+  }
+}
+
 async function run() {
   const currentMatches = await parser.getMatches();
   let databasePages = await getDatabaseMatches();
-  const filteredCurrentMatches = filterAddMatches(
-    currentMatches,
-    databasePages
-  );
+
   const deprecatedPages = filterDeprecatedMatches(
     currentMatches,
     databasePages
   );
 
-  updateDatabase(currentMatches, databasePages);
+  await updateDatabase(currentMatches, databasePages);
   databasePages = await getDatabaseMatches();
-  deletePages(databasePages);
-  addMatches(filteredCurrentMatches);
+
+  const filteredCurrentMatches = filterAddMatches(
+    currentMatches,
+    databasePages
+  );
+  await fulfillTBD(currentMatches, databasePages);
+  await deletePages(databasePages);
+  await addMatches(filteredCurrentMatches);
 }
 
 run();

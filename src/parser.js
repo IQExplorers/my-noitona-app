@@ -47,6 +47,8 @@ async function parseMatches(sourcePage, selector, game) {
         matchFound = true;
       }
 
+      //if (enemy === "TBD") matchFound = false;
+
       if (matchFound) {
         const tournamentName = $(tableElement)
           .find("tr:nth-child(2) > td > div > div > a")
@@ -123,7 +125,7 @@ async function parseDota() {
         .text();
 
       const status = dateObj.getTime() < Date.now() ? "going" : "upcoming";
-
+      
       const enemy = leftTeam === "B8" ? rightTeam : leftTeam;
 
       matches.push({

@@ -54,6 +54,7 @@ async function addMatches(matches) {
           Date: {
             date: {
               start: match.Date,
+              
             },
           },
           Tournament: {
@@ -241,32 +242,32 @@ async function run() {
 
 run();
 
-const intervalId = setInterval(run, 300000);
+// const intervalId = setInterval(run, 300000);
 
-async function runRquest() {
-  try {
-    const url = "https://notiona-activator.onrender.com/get";
-    const { data } = await axios.get(url);
-    console.log(data);
-  } catch (ex) {
-    console.log("ex", ex);
-  }
-}
+// async function runRquest() {
+//   try {
+//     const url = "https://notiona-activator.onrender.com/get";
+//     const { data } = await axios.get(url);
+//     console.log(data);
+//   } catch (ex) {
+//     console.log("ex", ex);
+//   }
+// }
 
-const intervalReqId = setInterval(runRquest, 300000);
+// const intervalReqId = setInterval(runRquest, 300000);
 
-function startServer() {
-  app.get("/get", (req, resp) => {
-    resp.send("server done!");
-  });
+// function startServer() {
+//   app.get("/get", (req, resp) => {
+//     resp.send("server done!");
+//   });
 
-  const port = 3011;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
-}
+//   const port = 3011;
+//   app.listen(port, () => {
+//     console.log(`Server is listening on port ${port}`);
+//   });
+// }
 
-startServer();
+// startServer();
 // setTimeout(() => {
 //   clearInterval(intervalId);
 // }, 500000);

@@ -130,7 +130,7 @@ async function parseDota() {
 
       matches.push({
         Name: enemy,
-        Game: "dota",
+        Game: "Dota 2",
         Date: dateObj,
         Format: format,
         Status: status,
@@ -140,7 +140,7 @@ async function parseDota() {
         },
       });
     });
-  console.log("dota", matches);
+  console.log("Dota 2", matches);
   return matches;
 }
 
@@ -194,7 +194,7 @@ async function parseHLTV(teamName) {
 
           matches.push({
             Name: enemy,
-            Game: "csgo",
+            Game: "CS:GO",
             Date: new Date(date + " " + matchTime),
             Format: format,
             Status: "upcoming",
@@ -213,10 +213,10 @@ async function getMatches() {
   const valorantMatches = await parseMatches(
     valorantSourse,
     valorantSelector,
-    "valorant"
+    "Valorant"
   );
   // const HLTVMatches = await parseHLTV("B8");
-  const CSGOMatches = await parseMatches(CSGOSourse, CSGOSelector, "csgo");
+  const CSGOMatches = await parseMatches(CSGOSourse, CSGOSelector, "CS:GO");
 
   // for (let i = 0; i < CSGOMathes.length; i++) {
   //   for (let j = 0; j < HLTVMatches.length; j++) {

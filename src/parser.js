@@ -69,14 +69,20 @@ async function parseMatches(sourcePage, selector, game) {
           .find("abbr")
           .text();
 
-        const dateObj = new Date(Date.parse(dateText));
+        const utcDateObj = new Date(Date.parse(dateText));
+        console.log("utcDateObj", utcDateObj);
 
-        const status = dateObj.getTime() < Date.now() ? "going" : "upcoming";
+        const status = utcDateObj.getTime() < Date.now() ? "going" : "upcoming";
+
+        const cetDateObj = new Date(
+          utcDateObj.setUTCHours(utcDateObj.getUTCHours() + 2)
+        );
+        console.log("cetDateObj", cetDateObj);
 
         matches.push({
           Name: enemy,
           Game: game,
-          Date: dateObj,
+          Date: cetDateObj,
           Format: format,
           Status: status,
           Tournament: {
@@ -109,8 +115,6 @@ async function parseDota() {
         .replace("-", "")
         .trim();
 
-      const dateObj = new Date(Date.parse(dateText));
-
       const tournamentName = $(tableElement)
         .find("tr:nth-child(2) > td > div > div > a")
         .text();
@@ -124,14 +128,22 @@ async function parseDota() {
         .find("abbr")
         .text();
 
-      const status = dateObj.getTime() < Date.now() ? "going" : "upcoming";
-      
       const enemy = leftTeam === "B8" ? rightTeam : leftTeam;
+
+      const utcDateObj = new Date(Date.parse(dateText));
+      console.log("utcDateObj", utcDateObj);
+
+      const status = utcDateObj.getTime() < Date.now() ? "going" : "upcoming";
+
+      const cetDateObj = new Date(
+        utcDateObj.setUTCHours(utcDateObj.getUTCHours() + 2)
+      );
+      console.log("cetDateObj", cetDateObj);
 
       matches.push({
         Name: enemy,
         Game: "Dota 2",
-        Date: dateObj,
+        Date: cetDateObj,
         Format: format,
         Status: status,
         Tournament: {
@@ -144,105 +156,20 @@ async function parseDota() {
   return matches;
 }
 
-async function parseHLTV(teamName) {
-  const browser = await chromium.launch({ downloadsPath: "./browser" });
-  const context = await browser.newContext({
-    userAgent: "Safari/537.36",
-  });
-  const page = await context.newPage();
-  await page.goto("https://www.hltv.org/matches");
-  const html = await page.content();
-
-  await browser.close();
-
-  const $ = cheerio.load(html);
-  const matches = [];
-
-  const upcomingMatchesSections = $(".upcomingMatchesSection");
-
-  upcomingMatchesSections.each((sectionId, section) => {
-    let date = $(section).find(".matchDayHeadline").text();
-
-    $(section)
-      .find(".upcomingMatch")
-      .each((matchId, match) => {
-        let enemy;
-        let matchFound = false;
-
-        const leftTeam = $(match).find(".team1 > .matchTeamName").text().trim();
-        const rightTeam = $(match)
-          .find(".team2 > .matchTeamName")
-          .text()
-          .trim();
-
-        if (leftTeam === teamName) {
-          enemy = rightTeam;
-          matchFound = true;
-        } else if (rightTeam === teamName) {
-          enemy = leftTeam;
-          matchFound = true;
-        }
-
-        if (matchFound) {
-          console.log("first");
-
-          const matchTime = $(match).find(".matchTime").text();
-          const format = $(match).find(".matchMeta").text();
-          const tournamentName = $(match).find(".matchEventName").text();
-          const tournamentLink =
-            "https://www.hltv.org/" + $(match).find(".match").attr("href");
-
-          matches.push({
-            Name: enemy,
-            Game: "CS:GO",
-            Date: new Date(date + " " + matchTime),
-            Format: format,
-            Status: "upcoming",
-            Tournament: { link: tournamentLink, name: tournamentName },
-          });
-          matchFound = false;
-        }
-      });
-  });
-
-  console.log("HLTVmatches", matches);
-  return matches;
-}
-
 async function getMatches() {
   const valorantMatches = await parseMatches(
     valorantSourse,
     valorantSelector,
     "Valorant"
   );
-  // const HLTVMatches = await parseHLTV("B8");
-  const CSGOMatches = await parseMatches(CSGOSourse, CSGOSelector, "CS:GO");
 
-  // for (let i = 0; i < CSGOMathes.length; i++) {
-  //   for (let j = 0; j < HLTVMatches.length; j++) {
-  //     if (CSGOMathes[i].Date.getTime() === HLTVMatches[j].Date.getTime()) {
-  //       CSGOMathes[i] = HLTVMatches[j];
-  //     }
-  //   }
-  // }
+  const CSGOMatches = await parseMatches(CSGOSourse, CSGOSelector, "CS:GO");
 
   const dotaMatches = await parseDota();
 
-  return [...CSGOMatches, ...valorantMatches, ...dotaMatches];
+  
+  return [...CSGOMatches, ...dotaMatches, ...valorantMatches];
 }
-
-//parseHLTV("B8");
-
-//parseMatches(valorantSourse, valorantSelector, "valorant");
-//parseMatches(CSGOSourse, CSGOSelector, "csgo");
-// parseMatches(dotaSource, dotaSelector, "dota");
-// parseDota();
-
-// const intervalId = setInterval(parseCS, 10000);
-
-// setTimeout(() => {
-//   clearInterval(intervalId);
-// }, 30000);
 
 module.exports = {
   getMatches: getMatches,

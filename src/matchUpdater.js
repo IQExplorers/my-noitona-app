@@ -2,9 +2,6 @@ const { Client } = require("@notionhq/client");
 const parser = require("./parser");
 require("dotenv").config();
 const express = require("express");
-const axios = require("axios");
-
-const app = express();
 
 const notion = new Client({
   auth: process.env.INTEGRATION_TOKEN,
@@ -13,9 +10,35 @@ const notion = new Client({
 const databaseId = process.env.DATABASE_ID;
 
 async function getDatabaseMatches() {
-  const { results } = await notion.databases.query({ database_id: databaseId });
+  const databasePages = [];
 
-  return results.map((page) => {
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(oneDayAgo.getDate() - 7);
+  const filter = {
+    property: "Date",
+    date: {
+      on_or_after: oneDayAgo.toISOString().split("T")[0], // Convert to ISO date format (YYYY-MM-DD)
+    },
+  };
+  let cursor = undefined;
+  while (true) {
+    const { results, next_cursor } = await notion.databases.query({
+      database_id: databaseId,
+      start_cursor: cursor,
+      filter: filter,
+    });
+
+    databasePages.push(...results);
+
+    if (!next_cursor) {
+      break;
+    }
+    cursor = next_cursor;
+  }
+
+  //console.log("databasePages", databasePages);
+
+  return databasePages.map((page) => {
     return { ...page.properties, pageId: page.id };
   });
 }
@@ -54,7 +77,7 @@ async function addMatches(matches) {
           Date: {
             date: {
               start: match.Date,
-              
+              time_zone: "CET",
             },
           },
           Tournament: {
@@ -90,8 +113,15 @@ function filterAddMatches(currentMatches, databasePages) {
       let fit = true;
 
       databasePages.forEach((page) => {
+        const date1 = new Date(match.Date.getTime() );
+        const date2 = new Date(Date.parse(page.Date.date.start) + 7200000);
+        console.log("page name", page.Name.title[0].text.content);
+        console.log("date1", date2);
+        console.log("match name", match.Name);
+        console.log("date2", date1);
         if (
-          match.Date.getTime() === Date.parse(page.Date.date.start) &&
+          match.Date.getTime() ===
+            Date.parse(page.Date.date.start) + 7200000 &&
           match.Tournament.name === page.Tournament.rich_text[0].text.content
         ) {
           fit = false;
@@ -170,7 +200,7 @@ async function updateDatabase(currentMatches, databasePages) {
           match.Name === page.Name.title[0].text.content &&
           match.Date.getTime() !== Date.parse(page.Date.date.start)
         ) {
-          pageToUpdate.Date = { date: { start: match.Date } };
+          pageToUpdate.Date = { date: { start: match.Date, time_zone: "CET" } };
         }
 
         if (Object.keys(pageToUpdate).length > 0) {
@@ -226,6 +256,7 @@ async function fulfillTBD(currentMatches, databasePages) {
 async function run() {
   const currentMatches = await parser.getMatches();
   let databasePages = await getDatabaseMatches();
+  console.log("dotaMatches[0]", currentMatches[1]);
 
   await updateDatabase(currentMatches, databasePages);
   databasePages = await getDatabaseMatches();
@@ -241,33 +272,3 @@ async function run() {
 }
 
 run();
-
-// const intervalId = setInterval(run, 300000);
-
-// async function runRquest() {
-//   try {
-//     const url = "https://notiona-activator.onrender.com/get";
-//     const { data } = await axios.get(url);
-//     console.log(data);
-//   } catch (ex) {
-//     console.log("ex", ex);
-//   }
-// }
-
-// const intervalReqId = setInterval(runRquest, 300000);
-
-// function startServer() {
-//   app.get("/get", (req, resp) => {
-//     resp.send("server done!");
-//   });
-
-//   const port = 3011;
-//   app.listen(port, () => {
-//     console.log(`Server is listening on port ${port}`);
-//   });
-// }
-
-// startServer();
-// setTimeout(() => {
-//   clearInterval(intervalId);
-// }, 500000);

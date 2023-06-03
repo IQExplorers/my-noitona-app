@@ -46,7 +46,21 @@ async function getDatabaseMatches() {
 async function addMatches(matches) {
   await Promise.all(
     matches.map(async (match) => {
+      let emoji;
+      if (match.Game === "Dota 2") emoji = "🟥";
+      else if (match.Game === "CS:GO") emoji = "🟪";
+      else if (match.Game === "Valorant") emoji = "🟦";
+
+      const matchDate = new Date(match.Date.getTime());
+      const cetDateObj = new Date(
+        matchDate.setUTCHours(matchDate.getUTCHours() + 2)
+      );
+
       await notion.pages.create({
+        icon: {
+          type: "emoji",
+          emoji: emoji,
+        },
         parent: { database_id: databaseId },
         properties: {
           Name: {
@@ -76,7 +90,7 @@ async function addMatches(matches) {
           },
           Date: {
             date: {
-              start: match.Date,
+              start: cetDateObj,
               time_zone: "CET",
             },
           },
@@ -113,15 +127,14 @@ function filterAddMatches(currentMatches, databasePages) {
       let fit = true;
 
       databasePages.forEach((page) => {
-        const date1 = new Date(match.Date.getTime() );
-        const date2 = new Date(Date.parse(page.Date.date.start) + 7200000);
+        const date1 = new Date(match.Date.getTime());
+        const date2 = new Date(Date.parse(page.Date.date.start));
         console.log("page name", page.Name.title[0].text.content);
         console.log("date1", date2);
         console.log("match name", match.Name);
         console.log("date2", date1);
         if (
-          match.Date.getTime() ===
-            Date.parse(page.Date.date.start) + 7200000 &&
+          match.Date.getTime() === Date.parse(page.Date.date.start) &&
           match.Tournament.name === page.Tournament.rich_text[0].text.content
         ) {
           fit = false;
@@ -181,6 +194,10 @@ async function updateDatabase(currentMatches, databasePages) {
       for (const page of databasePages) {
         const pageToUpdate = {};
 
+        const matchDate = new Date(match.Date.getTime());
+        const cetDateObj = new Date(
+          matchDate.setUTCHours(matchDate.getUTCHours() + 2)
+        );
         if (
           page.Name.title[0].text.content === "TBD" ||
           page.Status.status.name === "Done"
@@ -200,7 +217,7 @@ async function updateDatabase(currentMatches, databasePages) {
           match.Name === page.Name.title[0].text.content &&
           match.Date.getTime() !== Date.parse(page.Date.date.start)
         ) {
-          pageToUpdate.Date = { date: { start: match.Date, time_zone: "CET" } };
+          pageToUpdate.Date = { date: { start: cetDateObj, time_zone: "CET" } };
         }
 
         if (Object.keys(pageToUpdate).length > 0) {

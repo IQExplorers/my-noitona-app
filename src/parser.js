@@ -74,15 +74,12 @@ async function parseMatches(sourcePage, selector, game) {
 
         const status = utcDateObj.getTime() < Date.now() ? "going" : "upcoming";
 
-        const cetDateObj = new Date(
-          utcDateObj.setUTCHours(utcDateObj.getUTCHours() + 2)
-        );
-        console.log("cetDateObj", cetDateObj);
+      
 
         matches.push({
           Name: enemy,
           Game: game,
-          Date: cetDateObj,
+          Date: utcDateObj,
           Format: format,
           Status: status,
           Tournament: {
@@ -135,15 +132,12 @@ async function parseDota() {
 
       const status = utcDateObj.getTime() < Date.now() ? "going" : "upcoming";
 
-      const cetDateObj = new Date(
-        utcDateObj.setUTCHours(utcDateObj.getUTCHours() + 2)
-      );
-      console.log("cetDateObj", cetDateObj);
+    
 
       matches.push({
         Name: enemy,
         Game: "Dota 2",
-        Date: cetDateObj,
+        Date: utcDateObj,
         Format: format,
         Status: status,
         Tournament: {
